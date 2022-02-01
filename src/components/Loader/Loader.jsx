@@ -3,7 +3,7 @@ import { Wrapper } from './Loader.styled';
 
 const Loader = () => {
     return <Wrapper>
-                <Oval
+                <Oval 
                         arialLabel="loading-indicator"
                         height={100}
                         width={100}
