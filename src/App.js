@@ -1,111 +1,46 @@
-import React from 'react';
-import './App.css';
+import React, { Component } from "react";
+import { Toaster } from "react-hot-toast";
 
-import Loader from 'react-loader-spinner';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
 
-import Button from './components/Button/Button';
-import ImageGallery from './components/ImageGallery/ImageGallery';
-import Modal from './components/Modal/Modal';
-import Searchbar from './components/Searchbar/Searchbar';
+import Searchbar from "./components/Searchbar/Searchbar";
+import ImageGallery from "./components/ImageGallery/ImageGallery";
+import Modal from "./components/Modal/Modal";
 
-import { searchService } from './services/searchAPI.js';
-
-class App extends React.Component {
+class App extends Component {
   state = {
-    pageQuery: 1,
-    imagesQuery: null,
-    images: [],
-    modalImage: null,
-    loading: false,
+    searchQuery: "",
+    activeImgUrl: "",
+    showModal: false,
   };
 
-  handleImages = imagesQuery => {
-    if (!imagesQuery) {
-      toast.warn('Enter some query!');
-      return this.setState({ images: [] });
-    } else {
-      this.setState({ pageQuery: 1, imagesQuery });
-    }
+  searchFormSubmitHandler = (query) => {
+    this.setState({ searchQuery: query });
   };
 
-  fetchImages = () => {
-    const { imagesQuery, pageQuery } = this.state;
-
-    this.setState({ loading: true });
-
-    searchService.searchQuery = imagesQuery;
-    searchService
-      .fetchSearch()
-      .then(images => {
-        if (images.hits.length === 0) {
-          toast.error('No images with this query!');
-        }
-        if (pageQuery > 1) {
-          this.setState(prevState => ({
-            images: [...prevState.images, ...images.hits],
-          }));
-        } else {
-          this.setState({ images: images.hits });
-        }
-      })
-      .catch(error => toast.error(error.code))
-      .finally(() => {
-        this.setState({ loading: false });
-      });
+  activeImgUrlHandler = (url) => {
+    this.setState({ activeImgUrl: url });
   };
 
-  componentDidUpdate(_, prevState) {
-    const { imagesQuery, pageQuery } = this.state;
-
-    if (prevState.imagesQuery !== imagesQuery) {
-      searchService.resetPage();
-      this.fetchImages();
-    }
-
-    if (prevState.pageQuery !== pageQuery) {
-      this.fetchImages();
-    }
-  }
-
-  loadMore = () => {
-    this.setState(prevState => {
-      return { pageQuery: prevState.pageQuery + 1 };
-    });
-  };
-
-  showModal = modalImage => {
-    this.setState({ modalImage });
-  };
-
-  closeModal = () => {
-    this.setState({ modalImage: null });
+  toggleModal = () => {
+    this.setState(({ showModal }) => ({ showModal: !showModal }));
   };
 
   render() {
-    const { images, modalImage, loading } = this.state;
+    const { searchQuery, activeImgUrl, showModal } = this.state;
 
     return (
       <>
-        <Searchbar onSubmit={this.handleImages} />
-        <ImageGallery images={images} showModal={this.showModal} />
-        {loading && (
-          <Loader
-            type="ThreeDots"
-            color="#00BFFF"
-            height={80}
-            width={80}
-            style={{ textAlign: 'center' }}
-          />
+        <Searchbar onSubmit={this.searchFormSubmitHandler} />
+        <ImageGallery
+          searchQuery={searchQuery}
+          activeImgUrlHandler={this.activeImgUrlHandler}
+          onImgClick={this.toggleModal}
+        />
+        {showModal && (
+          <Modal closeModal={this.toggleModal} url={activeImgUrl} />
         )}
-        {images.length > 0 && <Button loadMoreBtn={this.loadMore} />}
-        {modalImage && (
-          <Modal closeModal={this.closeModal}>
-            <img src={modalImage.largeImageURL} alt={modalImage.tags} />
-          </Modal>
-        )}
-        <ToastContainer position="top-right" autoClose={3000} />
+        <Toaster />
       </>
     );
   }
