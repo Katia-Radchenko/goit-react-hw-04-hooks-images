@@ -1,18 +1,31 @@
-import React from "react";
+import React from 'react';
+import PropTypes from 'prop-types';
 
-import { Item, Image } from "./ImageGalleryItem.styled";
+import { Item, Image } from './ImageGalleryItem.styled';
 
-const ImageGalleryItem = ({url, largeImgUrl, query, id, onClick}) => {
-    return (
-        <Item>
-            <Image
-                src={url}
-                alt={query}
-                id={id}
-                onClick={() => onClick(largeImgUrl)}
-            />
-        </Item>
-    )
+export default function ImageGalleryItem({
+  url,
+  largeImgUrl,
+  query,
+  id,
+  onClick,
+}) {
+  return (
+    <Item>
+      <Image
+        src={url}
+        alt={query}
+        id={id}
+        onClick={() => onClick(largeImgUrl)}
+      />
+    </Item>
+  );
 }
 
-export default ImageGalleryItem;
+ImageGalleryItem.propTypes = {
+  url: PropTypes.string.isRequired,
+  largeImgUrl: PropTypes.string.isRequired,
+  query: PropTypes.string.isRequired,
+  id: PropTypes.number.isRequired,
+  onClick: PropTypes.func.isRequired,
+};

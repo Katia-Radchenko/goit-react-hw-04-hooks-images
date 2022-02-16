@@ -1,38 +1,52 @@
-import React, {Component} from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+import PropTypes from 'prop-types';
 
-import { Backdrop, ModalWindow } from "./Modal.styled";
+import Loader from '../Loader/Loader';
+import { Backdrop, ModalWindow } from './Modal.styled';
 
 const modalRoot = document.querySelector('#modal-root');
 
-class Modal extends Component {
-    componentDidMount() {
-        window.addEventListener('keydown', this.clickOnEscKeyHandler);
-    }
+export default function Modal({ url, closeModal }) {
+  const [loading, setLoading] = useState(true);
 
-    componentWillUnmount() {
-        window.removeEventListener('keydown', this.clickOnEscKeyHandler);
-    }
+  const handleLoading = () => {
+    setLoading(false);
+  };
 
-    clickOnEscKeyHandler = e => {
-        if (e.code === 'Escape') {
-            this.props.closeModal();
-        }
-    }
+  useEffect(() => {
+    window.addEventListener('keydown', clickOnEscKeyHandler);
+    return () => {
+      window.removeEventListener('keydown', clickOnEscKeyHandler);
+    };
+  });
 
-    clickOnBackdropHandler = e => {
-        if (e.target === e.currentTarget) {
-            this.props.closeModal();
-        }
+  const clickOnEscKeyHandler = e => {
+    if (e.code === 'Escape') {
+      closeModal();
     }
+  };
 
-    render() {
-        return createPortal(
-            <Backdrop onClick={this.clickOnBackdropHandler}>
-                <ModalWindow src={this.props.url}></ModalWindow>
-            </Backdrop>
-            , modalRoot)
+  const clickOnBackdropHandler = e => {
+    if (e.target === e.currentTarget) {
+      closeModal();
     }
+  };
+
+  return createPortal(
+    <Backdrop onClick={clickOnBackdropHandler}>
+      {loading && <Loader center />}
+      <ModalWindow
+        style={{ visibility: loading ? 'hidden' : 'visible' }}
+        src={url}
+        onLoad={handleLoading}
+      ></ModalWindow>
+    </Backdrop>,
+    modalRoot,
+  );
 }
 
-export default Modal;
+Modal.propTypes = {
+  url: PropTypes.string.isRequired,
+  closeModal: PropTypes.func.isRequired,
+};
