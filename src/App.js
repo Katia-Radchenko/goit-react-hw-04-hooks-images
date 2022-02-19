@@ -39,35 +39,20 @@ const App = () => {
   };
 
   const loadMore = () => {
-    setPageQuery(prev => prev + 1);
+    setPageQuery(prevPage => {
+      return prevPage + 1;
+    });
   };
 
-  //if imagesQuery change
   useEffect(() => {
-    if (!imagesQuery) {
+    if (!imagesQuery && pageQuery === 1) {
       return;
     }
+
     searchService.searchQuery = imagesQuery;
-    searchService.resetPage();
-    setIsLoading(true);
-    searchService
-      .fetchSearch()
-      .then(images => {
-        if (images.hits.length === 0) {
-          toast.error('No images with this query!');
-        }
-        setImages(images.hits);
-      })
-      .catch(error => toast.error(error.code))
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [imagesQuery]);
 
-  //if pageQuery change
-  useEffect(() => {
     if (pageQuery === 1) {
-      return;
+      searchService.resetPage();
     }
 
     setIsLoading(true);
@@ -75,15 +60,19 @@ const App = () => {
       .fetchSearch()
       .then(images => {
         if (images.hits.length === 0) {
-          toast.error('No more images!');
+          pageQuery > 1
+            ? toast.error('No more images!')
+            : toast.error('No images with this query!');
         }
-        setImages(prev => [...prev, ...images.hits]);
+        setImages(prevImages =>
+          pageQuery > 1 ? [...prevImages, ...images.hits] : images.hits,
+        );
       })
       .catch(error => toast.error(error.code))
       .finally(() => {
         setIsLoading(false);
       });
-  }, [pageQuery]);
+  }, [imagesQuery, pageQuery]);
 
   return (
     <>
